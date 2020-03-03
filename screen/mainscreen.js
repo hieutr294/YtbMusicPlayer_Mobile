@@ -53,3 +53,24 @@ class MainScreen extends React.Component{
     }
 
 }
+
+const style = StyleSheet.create({
+    textinput:{
+        fontSize:17,
+        borderColor:'gray',
+        borderWidth:1,
+        marginTop:'5%',
+        marginLeft:'2%',
+        marginRight:'2%',
+        borderRadius:5
+    },
+    suggets:{
+        textAlign:'center',
+        fontSize:18,
+        padding:5,
+        marginLeft:'2%',
+        marginRight:'2%'
+    }
+})
+
+export default MainScreen
