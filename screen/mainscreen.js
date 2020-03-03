@@ -11,6 +11,7 @@ class MainScreen extends React.Component{
             value:'',
             isHiden:false
         }
+        this.sendQuery = this.sendQuery.bind(this)
     }
 
     getAutoComplteData(text){
