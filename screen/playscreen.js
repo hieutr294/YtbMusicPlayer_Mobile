@@ -28,6 +28,31 @@ class PlayScreen extends React.Component{
         })
     }
     
+    play(url,title,artwork,artist){
+        TrackPlayer.updateOptions({
+            capabilities: [
+                TrackPlayer.CAPABILITY_PLAY,
+                TrackPlayer.CAPABILITY_PAUSE,
+                TrackPlayer.CAPABILITY_STOP
+            ],
+            compactCapabilities: [
+                TrackPlayer.CAPABILITY_PLAY,
+                TrackPlayer.CAPABILITY_PAUSE,
+                TrackPlayer.CAPABILITY_STOP
+            ]
+        })
+        TrackPlayer.setupPlayer().then(async ()=>{
+            await TrackPlayer.add({
+                id:'trackId',
+                url,
+                title,
+                artwork,
+                artist
+            })
+            TrackPlayer.play()
+        })
+    }
+
     render(){
         const {playUrl,imgUrl,author,title} = this.state
         return(
