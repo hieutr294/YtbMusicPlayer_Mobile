@@ -27,7 +27,7 @@ class PlayScreen extends React.Component{
             })
         })
     }
-    
+
     play(url,title,artwork,artist){
         TrackPlayer.updateOptions({
             capabilities: [
@@ -68,5 +68,23 @@ class PlayScreen extends React.Component{
         )
     }
 }
+
+const style = StyleSheet.create({
+    container:{
+        marginTop:'7%',
+        paddingLeft:'15%',
+        paddingRight:'15%'
+    },
+    title:{
+        marginTop:'20%',
+        fontSize:17,
+        textAlign:'center'
+    },
+    buttonGroup:{
+        flexDirection:'row',
+        marginTop:'15%',
+        justifyContent:'space-around'
+    }
+})
 
 export default PlayScreen
