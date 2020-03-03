@@ -16,6 +16,18 @@ class PlayScreen extends React.Component{
         }
     }
 
+    componentDidMount(){
+        const {videoId} = this.props.route.params
+        ytdl.getInfo(`https://www.youtube.com/watch?v=${videoId}`,(err,info)=>{
+            this.setState({
+                playUrl:ytdl.filterFormats(info.formats,'audioonly')[0].url,
+                imgUrl:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
+                title:info.title,
+                author:info.player_response.videoDetails.author
+            })
+        })
+    }
+    
     render(){
         const {playUrl,imgUrl,author,title} = this.state
         return(
