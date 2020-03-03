@@ -23,7 +23,7 @@ class MainScreen extends React.Component{
     }
 
     sendQuery(){
-        this.props.navigation.navigate('second',{query:this.state.value})
+        this.props.navigation.navigate('result',{query:this.state.value})
     }
 
     render(){
