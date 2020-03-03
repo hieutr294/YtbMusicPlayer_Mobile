@@ -36,3 +36,5 @@ class ResultScreen extends React.Component{
         )
     }
 }
+
+export default ResultScreen
