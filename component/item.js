@@ -8,7 +8,7 @@ class Item extends React.Component{
     render(){
         return(
             <View style={style.container}>
-                <Image style={{width:120,height:90}} source={{uri:this.props.thumbnail.url}}/>
+                <Image style={{width:120,height:90}} source={{uri:this.props.thumbnail}}/>
                 <View style={{marginLeft:'2%',marginTop:'2%',width:'60%'}}>
                     <Text style={{color:'black',textAlign:'center'}}>{this.props.title}</Text>
                     <Text style={{color:'black',textAlign:'center'}}>{this.props.channeltitle}</Text>
