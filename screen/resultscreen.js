@@ -23,6 +23,11 @@ class ResultScreen extends React.Component{
             const $ = cheerio.load(res.data)
             let imgLink = []
             let arrLink = []
+            let authors= []
+
+            $('.yt-lockup-byline').map((i,el)=>{
+                authors.push($(el).children().text())
+            })
 
             $('.yt-thumb-simple').map((i,el)=>{
                 if($(el).children().attr('src').includes('https')){
@@ -36,9 +41,9 @@ class ResultScreen extends React.Component{
                 arrLink.push({
                     title:$(el).children().first().text(),
                     id:$(el).children().attr('href').replace('/watch?v=',''),
-                    img:imgLink[i]
+                    img:imgLink[i],
+			        author:authors[i]
                 })
-                // console.log($(el).children().first().text())
             })
             
             this.setState({searchData:arrLink})
@@ -53,7 +58,7 @@ class ResultScreen extends React.Component{
                         initialNumToRender={this.state.searchdata.length}
                         renderItem={({item})=>(
                             <TouchableOpacity onPress={()=>{this.props.navigation.navigate('player',{videoId:item.id})}} >
-                                <Item channeltitle={'test'} thumbnail={item.img} title={item.title}/>
+                                <Item channeltitle={item.author} thumbnail={item.img} title={item.title}/>
                                 
                             </TouchableOpacity>
                         )}
