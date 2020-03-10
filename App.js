@@ -20,7 +20,7 @@ class App extends React.Component{
         <Stack.Navigator>
           <Stack.Screen name='main' component={MainScreen} options={{title:'Trang Chủ',headerTitleAlign:'center'}}/>
           <Stack.Screen name='result' component={ResultScreen} options={({route})=>({title:route.params.query})}/>
-          <Stack.Screen name='player' component={PlayScreen}/>
+          <Stack.Screen name='player' component={PlayScreen} options={{title:''}}/>
         </Stack.Navigator>
       </NavigationContainer>
     )
@@ -28,3 +28,4 @@ class App extends React.Component{
 }
 
 export default App;
+console.disableYellowBox = true;

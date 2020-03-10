@@ -1,7 +1,8 @@
 import React from 'react'
-import {View,Text,FlatList,TextInput,StyleSheet,TouchableOpacity,Button} from 'react-native'
+import {View,Text,FlatList,TextInput,StyleSheet,TouchableOpacity,ScrollView} from 'react-native'
 import axios from 'axios'
-
+import cheerio from 'react-native-cheerio'
+import Item from '../component/item'
 class MainScreen extends React.Component{
     constructor(){
         super()
@@ -9,9 +10,49 @@ class MainScreen extends React.Component{
             suggetData:[],
             searchData:[],
             value:'',
-            isHiden:false
+            isHiden:false,
+            trending:[]
         }
         this.sendQuery = this.sendQuery.bind(this)
+    }
+
+    componentDidMount(){
+        // axios.get(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&q=${this.props.route.params.query}&key=AIzaSyBLzpSnGYDCwLISe9XZSVHuGHWiiQs9A_I`)
+        // .then(res=>{
+        //     this.setState({searchData:res.data.items})
+        // })
+        // .catch(err=>{console.log(err.response.request._response)})
+
+        axios.get(`https://www.youtube.com/feed/trending?bp=4gIuCggvbS8wNHJsZhIiUExGZ3F1TG5MNTlhbW42X05FZFc5TGswZDdXZWVST0Q2VA%3D%3D`)
+        .then(res=>{
+            const $ = cheerio.load(res.data)
+            let imgLink = []
+            let arrLink = []
+            let authors= []
+
+            $('.yt-lockup-byline').map((i,el)=>{
+                authors.push($(el).children().text())
+            })
+
+            $('.yt-thumb-simple').map((i,el)=>{
+                if($(el).children().attr('src').includes('https')){
+                    imgLink.push($(el).children().attr('src'))
+                }else{
+                    imgLink.push($(el).children().attr('data-thumb'))
+                }
+            })
+        
+            $('.yt-lockup-title').map((i,el)=>{
+                arrLink.push({
+                    title:$(el).children().first().text(),
+                    id:$(el).children().attr('href').replace('/watch?v=',''),
+                    img:imgLink[i],
+			        author:authors[i]
+                })
+            })
+            
+            this.setState({trending:arrLink})
+        })
     }
 
     getAutoComplteData(text){
@@ -30,6 +71,7 @@ class MainScreen extends React.Component{
     render(){
         return(
             <View style={{backgroundColor:'white'}}>
+
                     <View >
                         <TextInput 
                             style={style.textinput}
@@ -48,6 +90,20 @@ class MainScreen extends React.Component{
                             keyExtractor={item=>item.id}
                         />
                     </View>
+
+                    <ScrollView style={style.trending}>
+                        <FlatList
+                            data={this.state.trending}
+                            initialNumToRender={this.state.trending.length}
+                            renderItem={({item})=>(
+                                <TouchableOpacity onPress={()=>{this.props.navigation.navigate('player',{videoId:item.id})}} >
+                                    <Item channeltitle={item.author} thumbnail={item.img} title={item.title}/>
+                                    
+                                </TouchableOpacity>
+                            )}
+                            keyExtractor={item=>item.id}
+                        />
+                    </ScrollView>
 
             </View>
         )
@@ -71,6 +127,10 @@ const style = StyleSheet.create({
         padding:5,
         marginLeft:'2%',
         marginRight:'2%'
+    },
+    trending:{
+        backgroundColor:'white',
+        height:'87%'
     }
 })
 
