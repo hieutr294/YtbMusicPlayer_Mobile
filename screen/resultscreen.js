@@ -59,7 +59,6 @@ class ResultScreen extends React.Component{
                         renderItem={({item})=>(
                             <TouchableOpacity onPress={()=>{this.props.navigation.navigate('player',{videoId:item.id})}} >
                                 <Item channeltitle={item.author} thumbnail={item.img} title={item.title}/>
-                                
                             </TouchableOpacity>
                         )}
                         keyExtractor={item=>item.id}
