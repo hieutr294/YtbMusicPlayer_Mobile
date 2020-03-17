@@ -1,9 +1,13 @@
 import React, { Children } from 'react'
 
 import {View,Text,Image,StyleSheet,Button,ScrollView,FlatList,TouchableOpacity} from 'react-native'
-import TrackPlayer, { STATE_STOPPED, STATE_PLAYING } from 'react-native-track-player';
+import Icon from 'react-native-vector-icons/dist/FontAwesome'
+import TrackPlayer from 'react-native-track-player';
 import ytdl from 'react-native-ytdl'
 import Item from '../component/item'
+import ProgressBar from '../component/progress'
+import ViewPager from '@react-native-community/viewpager';
+
 class PlayScreen extends React.Component{
     constructor(){
         super()
@@ -65,7 +69,7 @@ class PlayScreen extends React.Component{
                     })
                 })
             })
-
+            
             TrackPlayer.addEventListener('playback-track-changed',data=>{
                 TrackPlayer.getTrack(data.nextTrack).then(val=>{
                     this.setState({
@@ -87,32 +91,41 @@ class PlayScreen extends React.Component{
 
     render(){
         return(
-            <View style={style.container}>
-                <View style={style.img}>
-                    <Image style={{width:246,height:138}} source={{uri:this.state.artwork}}/>
+            <ViewPager style={{flex:1}} initialPage={0}>
+                <View key="1" style={{alignItems:'center'}}>
+                    <View style={style.container}>
+                        <View style={style.img}>
+                            <Image style={{width:246,height:138}} source={{uri:this.state.artwork}} onPress={()=>{console.log(1)}}/>
+                        </View>
+                        
+                        <Text style={style.title}>{this.state.title}</Text>
+
+                        <ProgressBar/>
+
+                        <View style={style.buttonGroup}>
+                            <Button title='back' onPress={()=>{TrackPlayer.skipToPrevious()}}/>
+                            <Button title='pause' onPress={()=>{TrackPlayer.pause()}}/>
+                            <Button title='play' onPress={()=>{TrackPlayer.play()}}/>
+                            <Button title='stop' onPress={()=>{TrackPlayer.stop()}}/>
+                            <Button title='next' onPress={()=>{TrackPlayer.skipToNext()}}/>
+                        </View>
+                    </View>
                 </View>
-                
-                <Text style={style.title}>{this.state.title}</Text>
-                <View style={style.buttonGroup}>
-                    <Button title='pause' onPress={()=>{TrackPlayer.pause()}}/>
-                    <Button title='play' onPress={()=>{TrackPlayer.play()}}/>
-                    <Button title='stop' onPress={()=>{TrackPlayer.stop()}}/>
-                    <Button title='next' onPress={()=>{
-                        TrackPlayer.skipToNext()
-                    }}/>
+
+                <View key="2">
+                    <ScrollView>
+                        <FlatList
+                            data={this.state.related}
+                            initialNumToRender={this.state.related.length}
+                            renderItem={({item})=>(
+                                <TouchableOpacity onPress={()=>TrackPlayer.skip(item.id)}>
+                                    <Item channeltitle={''} thumbnail={item.artwork} title={item.title}/>
+                                </TouchableOpacity>
+                            )}
+                        />
+                    </ScrollView>
                 </View>
-                <ScrollView>
-                    <FlatList
-                        data={this.state.related}
-                        initialNumToRender={this.state.related.length}
-                        renderItem={({item})=>(
-                            <TouchableOpacity onPress={()=>TrackPlayer.skip(item.id)}>
-                                <Item channeltitle={''} thumbnail={item.artwork} title={item.title}/>
-                            </TouchableOpacity>
-                        )}
-                    />
-                </ScrollView>
-            </View>
+            </ViewPager>
         )
     }
 }
@@ -134,7 +147,7 @@ const style = StyleSheet.create({
         flexDirection:'row',
         marginTop:'5%',
         alignItems:'center',
-        justifyContent:'center'
+        justifyContent:'space-evenly'
     }
 })
 

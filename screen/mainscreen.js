@@ -3,13 +3,14 @@ import {View,Text,FlatList,TextInput,StyleSheet,TouchableOpacity,ScrollView} fro
 import axios from 'axios'
 import cheerio from 'react-native-cheerio'
 import Item from '../component/item'
+import ViewPager from '@react-native-community/viewpager';
 class MainScreen extends React.Component{
     constructor(){
         super()
         this.state={
             suggetData:[],
             searchData:[],
-            value:'',
+            value:' ',
             isHiden:false,
             trending:[]
         }
@@ -17,12 +18,6 @@ class MainScreen extends React.Component{
     }
 
     componentDidMount(){
-        // axios.get(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&q=${this.props.route.params.query}&key=AIzaSyBLzpSnGYDCwLISe9XZSVHuGHWiiQs9A_I`)
-        // .then(res=>{
-        //     this.setState({searchData:res.data.items})
-        // })
-        // .catch(err=>{console.log(err.response.request._response)})
-
         axios.get(`https://www.youtube.com/feed/trending?bp=4gIuCggvbS8wNHJsZhIiUExGZ3F1TG5MNTlhbW42X05FZFc5TGswZDdXZWVST0Q2VA%3D%3D`)
         .then(res=>{
             const $ = cheerio.load(res.data)
