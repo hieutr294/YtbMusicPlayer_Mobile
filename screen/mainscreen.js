@@ -1,9 +1,14 @@
 import React from 'react'
-import {View,Text,FlatList,TextInput,StyleSheet,TouchableOpacity,ScrollView} from 'react-native'
+import {View,Text,FlatList,TextInput,StyleSheet,TouchableOpacity,ScrollView,Button} from 'react-native'
 import axios from 'axios'
 import cheerio from 'react-native-cheerio'
 import Item from '../component/item'
-import ViewPager from '@react-native-community/viewpager';
+import { connect } from 'react-redux';
+import {setId} from '../actions/index'
+import {
+    Input,
+    Layout,
+  } from '@ui-kitten/components';
 class MainScreen extends React.Component{
     constructor(){
         super()
@@ -57,6 +62,9 @@ class MainScreen extends React.Component{
         })
         .catch(err=>{console.log(err)})
         this.setState({value:text})
+        if(text==''){
+            this.setState({value:' '})
+        }
     }
 
     sendQuery(){
@@ -68,8 +76,7 @@ class MainScreen extends React.Component{
             <View style={{backgroundColor:'white'}}>
 
                     <View >
-                        <TextInput 
-                            style={style.textinput}
+                        <Input 
                             onChangeText={(text)=>this.getAutoComplteData(text)}
                             onSubmitEditing={this.sendQuery}
                             defaultValue={this.state.value}
@@ -91,7 +98,10 @@ class MainScreen extends React.Component{
                             data={this.state.trending}
                             initialNumToRender={this.state.trending.length}
                             renderItem={({item})=>(
-                                <TouchableOpacity onPress={()=>{this.props.navigation.navigate('player',{videoId:item.id})}} >
+                                <TouchableOpacity onPress={()=>{
+                                    this.props.onPressItem(item.id)
+                                    this.props.navigation.navigate('player')
+                                    }} >
                                     <Item channeltitle={item.author} thumbnail={item.img} title={item.title}/>
                                     
                                 </TouchableOpacity>
@@ -129,4 +139,8 @@ const style = StyleSheet.create({
     }
 })
 
-export default MainScreen
+export default connect(state=>{return{}},dispatch=>{
+    return{
+        onPressItem:(id)=>{dispatch(setId(id))}
+    }
+})(MainScreen)

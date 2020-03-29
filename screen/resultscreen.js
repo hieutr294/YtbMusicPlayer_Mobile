@@ -3,7 +3,8 @@ import {ScrollView,View,TouchableOpacity,FlatList} from 'react-native'
 import Item from '../component/item'
 import axios from 'axios'
 import cheerio from 'react-native-cheerio'
-
+import { connect } from 'react-redux';
+import {setId} from '../actions/index'
 class ResultScreen extends React.Component{
     constructor(){
         super()
@@ -12,12 +13,6 @@ class ResultScreen extends React.Component{
         }
     }
     componentDidMount(){
-        // axios.get(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&q=${this.props.route.params.query}&key=AIzaSyBLzpSnGYDCwLISe9XZSVHuGHWiiQs9A_I`)
-        // .then(res=>{
-        //     this.setState({searchData:res.data.items})
-        // })
-        // .catch(err=>{console.log(err.response.request._response)})
-
         axios.get(`https://www.youtube.com/results?search_query=${this.props.route.params.query}`)
         .then(res=>{
             const $ = cheerio.load(res.data)
@@ -57,7 +52,10 @@ class ResultScreen extends React.Component{
                         data={this.state.searchData}
                         initialNumToRender={this.state.searchdata.length}
                         renderItem={({item})=>(
-                            <TouchableOpacity onPress={()=>{this.props.navigation.navigate('player',{videoId:item.id})}} >
+                            <TouchableOpacity onPress={()=>{
+                                this.props.navigation.navigate('player')
+                                this.props.onPressItem(item.id)
+                                }} >
                                 <Item channeltitle={item.author} thumbnail={item.img} title={item.title}/>
                             </TouchableOpacity>
                         )}
@@ -69,4 +67,8 @@ class ResultScreen extends React.Component{
     }
 }
 
-export default ResultScreen
+export default connect(state=>{return{}},dispatch=>{
+    return{
+        onPressItem:(id)=>{dispatch(setId(id))}
+    }
+})(ResultScreen)
