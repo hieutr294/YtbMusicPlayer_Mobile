@@ -7,6 +7,7 @@ import ytdl from 'react-native-ytdl'
 import Item from '../component/item'
 import ProgressBar from '../component/progress'
 import ViewPager from '@react-native-community/viewpager';
+import Carousel from 'react-native-snap-carousel';
 import { connect } from 'react-redux';
 class PlayScreen extends React.Component{
     constructor(){
@@ -52,6 +53,16 @@ class PlayScreen extends React.Component{
                 title:info.title,
                 artist:info.player_response.videoDetails.author
             })
+            this.setState({
+                related:[{
+                    idYtb:info.video_id,
+                    id:"first",
+                    url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
+                    artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
+                    title:info.title,
+                    artist:info.player_response.videoDetails.author
+                }]
+            })
             info.related_videos.map((val,index)=>{
                 ytdl.getInfo(val.id,async (err,info)=>{
                     TrackPlayer.add({
@@ -63,6 +74,7 @@ class PlayScreen extends React.Component{
                     })
                     this.setState({
                         related:[...this.state.related,{
+                            idYtb:info.video_id,
                             id:`${index}`,
                             url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
                             artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
@@ -88,6 +100,9 @@ class PlayScreen extends React.Component{
         if(prevProps.id!=this.props.id){
             TrackPlayer.destroy()
             TrackPlayer.setupPlayer()
+            this.setState({
+                related:[]
+            })
             ytdl.getInfo(`https://www.youtube.com/watch?v=${this.props.id}`,(err,info)=>{
                 TrackPlayer.add({
                     id:"first",
@@ -96,6 +111,18 @@ class PlayScreen extends React.Component{
                     title:info.title,
                     artist:info.player_response.videoDetails.author
                 })
+
+                this.setState({
+                    related:[{
+                        idYtb:info.video_id,
+                        id:"first",
+                        url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
+                        artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
+                        title:info.title,
+                        artist:info.player_response.videoDetails.author
+                    }]
+                })
+
                 info.related_videos.map((val,index)=>{
                     ytdl.getInfo(val.id,async (err,info)=>{
                         TrackPlayer.add({
@@ -107,6 +134,7 @@ class PlayScreen extends React.Component{
                         })
                         this.setState({
                             related:[...this.state.related,{
+                                idYtb:info.video_id,
                                 id:`${index}`,
                                 url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
                                 artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
@@ -169,24 +197,46 @@ class PlayScreen extends React.Component{
             <Icon fill='black' width='24' height='24' name='skip-forward-outline'/>
         )
     }
+
+    nextTrack(){
+        this.refs.carousel.snapToNext()
+    }
+
+    prevTrack(){
+        this.refs.carousel.snapToPrev()
+    }
+
     render(){
         return(
             <ViewPager style={{width:'100%',height:'100%',flex:1}} initialPage={0}>
                 <View key="1" style={{alignItems:'center',justifyContent:'center'}}>
                     <View style={style.container}>
-                        <View style={style.img}>
-                            <Image style={{width:246,height:138}} source={{uri:this.state.artwork}} onPress={()=>{console.log(1)}}/>
-                        </View>
-                        <Text style={style.title}>{this.state.title}</Text>
+
+                        <Carousel
+                            ref={'carousel'}
+                            data={this.state.related}
+                            renderItem={({item,index})=>(
+                                <View>
+                                    <Image source={{uri:item.artwork}} style={{width:246,height:138}}/>
+                                    <Text style={style.title}>{item.title}</Text>
+                                </View>
+                            )}
+                            sliderWidth={246}
+                            itemWidth={246}
+                            onSnapToItem={(index)=>TrackPlayer.skip(this.state.related[index].id)}
+                            contentContainerCustomStyle={style.img}
+                            loop={true}
+                        />
 
                         <ProgressBar/>
 
                         <View style={style.buttonGroup}>
-                            <Button style={style.button} icon={this.skipIcon} onPress={()=>TrackPlayer.skipToPrevious()}></Button>
+                            <Button style={style.button} icon={this.skipIcon} onPress={()=>this.prevTrack()}></Button>
                             <Button style={style.button} icon={this.playIcon} onPress={this.playPause}></Button>
                             <Button style={style.button} icon={this.stopIcon} onPress={()=>TrackPlayer.stop()}></Button>
-                            <Button style={style.button} icon={this.forwardIcon} onPress={()=>TrackPlayer.skipToNext()}></Button>
+                            <Button style={style.button} icon={this.forwardIcon} onPress={()=>this.nextTrack()}></Button>
                         </View>
+
                     </View>
                 </View>
 
@@ -195,8 +245,8 @@ class PlayScreen extends React.Component{
                         <FlatList
                             data={this.state.related}
                             initialNumToRender={this.state.related.length}
-                            renderItem={({item})=>(
-                                <TouchableOpacity onPress={()=>TrackPlayer.skip(item.id)}>
+                            renderItem={({item,index})=>(
+                                <TouchableOpacity onPress={()=>this.skipTo(index,item)}>
                                     <Item channeltitle={''} thumbnail={item.artwork} title={item.title}/>
                                 </TouchableOpacity>
                             )}
