@@ -1,28 +1,26 @@
 import React from 'react'
-import {View,Text,FlatList,TextInput,StyleSheet,TouchableOpacity,ScrollView,Button} from 'react-native'
+import { SearchBar,Icon,Divider } from 'react-native-elements';
+import {View,Text,FlatList,StyleSheet,TouchableOpacity,ScrollView} from 'react-native'
 import axios from 'axios'
 import cheerio from 'react-native-cheerio'
 import Item from '../component/item'
 import { connect } from 'react-redux';
 import {setId} from '../actions/index'
-import {
-    Input,
-    Layout,
-  } from '@ui-kitten/components';
+
 class MainScreen extends React.Component{
     constructor(){
         super()
         this.state={
             suggetData:[],
-            searchData:[],
             value:' ',
             isHiden:false,
             trending:[]
         }
         this.sendQuery = this.sendQuery.bind(this)
+        this.getYtbData = this.getYtbData.bind(this)
     }
 
-    componentDidMount(){
+    getYtbData(){
         axios.get(`https://www.youtube.com/feed/trending?bp=4gIuCggvbS8wNHJsZhIiUExGZ3F1TG5MNTlhbW42X05FZFc5TGswZDdXZWVST0Q2VA%3D%3D`)
         .then(res=>{
             const $ = cheerio.load(res.data)
@@ -50,9 +48,12 @@ class MainScreen extends React.Component{
 			        author:authors[i]
                 })
             })
-            
-            this.setState({trending:arrLink})
+            this.setState({trending:this.state.trending.concat(arrLink)})
         })
+    }
+
+    componentDidMount(){
+        this.getYtbData()
     }
 
     getAutoComplteData(text){
@@ -74,12 +75,14 @@ class MainScreen extends React.Component{
     render(){
         return(
             <View style={{backgroundColor:'white'}}>
-
                     <View >
-                        <Input 
+                        <SearchBar
+                            platform='android'
+                            searchIcon={(<Icon name='search'/>)}
+                            value={this.state.value}
                             onChangeText={(text)=>this.getAutoComplteData(text)}
                             onSubmitEditing={this.sendQuery}
-                            defaultValue={this.state.value}
+                            defaultValue=" "
                         />
                         <FlatList
                             data={this.state.suggetData}
@@ -87,13 +90,11 @@ class MainScreen extends React.Component{
                                 <TouchableOpacity onPress={()=>{this.setState({value:item})}}>
                                     <Text style={style.suggets}>{item}</Text>
                                 </TouchableOpacity>
-            
                             )}
                             keyExtractor={item=>item.id}
                         />
                     </View>
-
-                    <ScrollView style={style.trending}>
+                    <View style={style.trending}>
                         <FlatList
                             data={this.state.trending}
                             initialNumToRender={this.state.trending.length}
@@ -108,7 +109,7 @@ class MainScreen extends React.Component{
                             )}
                             keyExtractor={item=>item.id}
                         />
-                    </ScrollView>
+                    </View>
 
             </View>
         )

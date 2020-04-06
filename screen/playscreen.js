@@ -1,7 +1,7 @@
 import React from 'react'
 
 import {View,Text,Image,StyleSheet,ScrollView,FlatList,TouchableOpacity} from 'react-native'
-import {Button,Icon} from '@ui-kitten/components';
+
 import TrackPlayer from 'react-native-track-player';
 import ytdl from 'react-native-ytdl'
 import Item from '../component/item'
@@ -9,6 +9,8 @@ import ProgressBar from '../component/progress'
 import ViewPager from '@react-native-community/viewpager';
 import Carousel from 'react-native-snap-carousel';
 import { connect } from 'react-redux';
+import { Button,Icon } from 'react-native-elements';
+
 class PlayScreen extends React.Component{
     constructor(){
         super()
@@ -17,10 +19,11 @@ class PlayScreen extends React.Component{
             title:'',
             artwork:'',
             related:[],
-            currentTrack:''
+            currentTrack:'',
+            noMusic:false
         }
         this.count = 0
-        this.nameIcon = 'play-circle-outline'
+        this.nameIcon = 'play-arrow'
         this.playPause = this.playPause.bind(this)
         this.playIcon = this.playIcon.bind(this)
     }
@@ -45,59 +48,66 @@ class PlayScreen extends React.Component{
         })
         TrackPlayer.setupPlayer()
 
-        ytdl.getInfo(`https://www.youtube.com/watch?v=${this.props.id}`,(err,info)=>{
-            TrackPlayer.add({
-                id:"first",
-                url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
-                artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
-                title:info.title,
-                artist:info.player_response.videoDetails.author
-            })
+        if(this.props.id==""){
             this.setState({
-                related:[{
-                    idYtb:info.video_id,
+                noMusic:true
+            })
+        }else{
+            ytdl.getInfo(`https://www.youtube.com/watch?v=${this.props.id}`,(err,info)=>{
+                TrackPlayer.add({
                     id:"first",
                     url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
                     artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
                     title:info.title,
                     artist:info.player_response.videoDetails.author
-                }]
-            })
-            info.related_videos.map((val,index)=>{
-                ytdl.getInfo(val.id,async (err,info)=>{
-                    TrackPlayer.add({
-                        id:`${index}`,
+                })
+                this.setState({
+                    related:[{
+                        id:"first",
                         url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
                         artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
                         title:info.title,
                         artist:info.player_response.videoDetails.author
-                    })
-                    this.setState({
-                        related:[...this.state.related,{
-                            idYtb:info.video_id,
+                    }]
+                })
+                info.related_videos.map((val,index)=>{
+                    ytdl.getInfo(val.id,async (err,info)=>{
+                        TrackPlayer.add({
                             id:`${index}`,
                             url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
                             artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
                             title:info.title,
                             artist:info.player_response.videoDetails.author
-                        }]
+                        })
+                        this.setState({
+                            related:[...this.state.related,{
+                                id:`${index}`,
+                                url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
+                                artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
+                                title:info.title,
+                                artist:info.player_response.videoDetails.author
+                            }]
+                        })
                     })
                 })
-            })
-            
-            TrackPlayer.addEventListener('playback-track-changed',data=>{
-                TrackPlayer.getTrack(data.nextTrack).then(val=>{
-                    this.setState({
-                        title:val.title,
-                        artwork:val.artwork
+                
+                TrackPlayer.addEventListener('playback-track-changed',data=>{
+                    TrackPlayer.getTrack(data.nextTrack).then(val=>{
+                        this.setState({
+                            title:val.title,
+                            artwork:val.artwork
+                        })
                     })
                 })
-            })
-        })
+            })  
+        }
     }
 
     componentDidUpdate(prevProps){
         if(prevProps.id!=this.props.id){
+            this.setState({
+                noMusic:false
+            })
             TrackPlayer.destroy()
             TrackPlayer.setupPlayer()
             this.setState({
@@ -114,7 +124,6 @@ class PlayScreen extends React.Component{
 
                 this.setState({
                     related:[{
-                        idYtb:info.video_id,
                         id:"first",
                         url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
                         artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
@@ -161,40 +170,44 @@ class PlayScreen extends React.Component{
                 TrackPlayer.play()
             }
         })
+
+        TrackPlayer.getCurrentTrack().then(val=>{
+            this.refs.carousel.snapToItem(val)
+        })
     }
 
     playPause(){
         TrackPlayer.pause()
-        this.nameIcon='pause-circle-outline'
+        this.nameIcon='pause'
         this.count+=1
         if(this.count>=2){
             TrackPlayer.play()
-            this.nameIcon='play-circle-outline'
+            this.nameIcon='play-arrow'
             this.count=0
         }
     }
 
     playIcon(){
         return(
-            <Icon fill='black' width='24' height='24' name={this.nameIcon}/>
+            <Icon name={this.nameIcon}/>
         )
     }
 
     stopIcon(){
         return(
-            <Icon fill='black' width='24' height='24' name='stop-circle-outline'/>
+            <Icon name='stop'/>
         )
     }
 
     skipIcon(){
         return(
-            <Icon fill='black' width='24' height='24' name='skip-back-outline'/>
+            <Icon name='skip-previous'/>
         )
     }
 
     forwardIcon(){
         return(
-            <Icon fill='black' width='24' height='24' name='skip-forward-outline'/>
+            <Icon name='skip-next'/>
         )
     }
 
@@ -206,55 +219,64 @@ class PlayScreen extends React.Component{
         this.refs.carousel.snapToPrev()
     }
 
+    skipTo(index,item){
+        this.refs.carousel.snapToItem(index)
+    }
+
     render(){
-        return(
-            <ViewPager style={{width:'100%',height:'100%',flex:1}} initialPage={0}>
-                <View key="1" style={{alignItems:'center',justifyContent:'center'}}>
-                    <View style={style.container}>
-
-                        <Carousel
-                            ref={'carousel'}
-                            data={this.state.related}
-                            renderItem={({item,index})=>(
-                                <View>
-                                    <Image source={{uri:item.artwork}} style={{width:246,height:138}}/>
-                                    <Text style={style.title}>{item.title}</Text>
-                                </View>
-                            )}
-                            sliderWidth={246}
-                            itemWidth={246}
-                            onSnapToItem={(index)=>TrackPlayer.skip(this.state.related[index].id)}
-                            contentContainerCustomStyle={style.img}
-                            loop={true}
-                        />
-
-                        <ProgressBar/>
-
-                        <View style={style.buttonGroup}>
-                            <Button style={style.button} icon={this.skipIcon} onPress={()=>this.prevTrack()}></Button>
-                            <Button style={style.button} icon={this.playIcon} onPress={this.playPause}></Button>
-                            <Button style={style.button} icon={this.stopIcon} onPress={()=>TrackPlayer.stop()}></Button>
-                            <Button style={style.button} icon={this.forwardIcon} onPress={()=>this.nextTrack()}></Button>
+        console.log(this.state.noMusic)
+        if(this.state.noMusic){
+            return(
+                <View style={{width:'100%',height:'100%',backgroundColor:'white',justifyContent:'center',alignItems:'center'}}>
+                        <Text>PLEASE SELECT MUSIC</Text>
+                </View>
+            )
+        }else{
+            return(
+                <ViewPager style={{width:'100%',height:'100%',flex:1}} initialPage={0}>
+                    <View key="1" style={{alignItems:'center',justifyContent:'center'}}>
+                        <View style={style.container}>
+                            <Carousel
+                                ref={'carousel'}
+                                data={this.state.related}
+                                renderItem={({item,index})=>(
+                                    <View>
+                                        <Image source={{uri:item.artwork}} style={{width:246,height:138}}/>
+                                        <Text style={style.title}>{item.title}</Text>
+                                    </View>
+                                )}
+                                sliderWidth={246}
+                                itemWidth={246}
+                                onSnapToItem={(index)=>TrackPlayer.skip(this.state.related[index].id)}
+                                contentContainerCustomStyle={style.img}
+                            />
+    
+                            <ProgressBar/>
+    
+                            <View style={style.buttonGroup}>
+                                <Button buttonStyle={style.button} icon={this.skipIcon} onPress={()=>this.prevTrack()}></Button>
+                                <Button buttonStyle={style.button} icon={this.playIcon} onPress={this.playPause}></Button>
+                                <Button buttonStyle={style.button} icon={this.stopIcon} onPress={()=>TrackPlayer.stop()}></Button>
+                                <Button buttonStyle={style.button} icon={this.forwardIcon} onPress={()=>this.nextTrack()}></Button>
+                            </View>
+    
                         </View>
-
                     </View>
-                </View>
-
-                <View key="2">
-                    <ScrollView>
-                        <FlatList
-                            data={this.state.related}
-                            initialNumToRender={this.state.related.length}
-                            renderItem={({item,index})=>(
-                                <TouchableOpacity onPress={()=>this.skipTo(index,item)}>
-                                    <Item channeltitle={''} thumbnail={item.artwork} title={item.title}/>
-                                </TouchableOpacity>
-                            )}
-                        />
-                    </ScrollView>
-                </View>
-            </ViewPager>
-        )
+    
+                    <View key="2">
+                            <FlatList
+                                data={this.state.related}
+                                initialNumToRender={this.state.related.length}
+                                renderItem={({item,index})=>(
+                                    <TouchableOpacity onPress={()=>this.skipTo(index,item)}>
+                                        <Item channeltitle={''} thumbnail={item.artwork} title={item.title}/>
+                                    </TouchableOpacity>
+                                )}
+                            />
+                    </View>
+                </ViewPager>
+            )
+        }
     }
 }
 

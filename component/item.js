@@ -1,6 +1,6 @@
 import React from 'react'
 import {Text,View,Image,StyleSheet} from 'react-native'
-
+import { Card, ListItem, Button } from 'react-native-elements'
 class Item extends React.Component{
     constructor(){
         super()
