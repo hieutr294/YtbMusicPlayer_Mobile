@@ -7,7 +7,6 @@ import ytdl from 'react-native-ytdl'
 import Item from '../component/item'
 import ProgressBar from '../component/progress'
 import ViewPager from '@react-native-community/viewpager';
-import Carousel from 'react-native-snap-carousel';
 import { connect } from 'react-redux';
 import { Button,Icon } from 'react-native-elements';
 
@@ -169,11 +168,11 @@ class PlayScreen extends React.Component{
             if(val==TrackPlayer.STATE_READY){
                 TrackPlayer.play()
             }
+            if(val==TrackPlayer.STATE_PAUSED){
+                console.log(val)
+            }
         })
 
-        TrackPlayer.getCurrentTrack().then(val=>{
-            this.refs.carousel.snapToItem(val)
-        })
     }
 
     playPause(){
@@ -212,19 +211,18 @@ class PlayScreen extends React.Component{
     }
 
     nextTrack(){
-        this.refs.carousel.snapToNext()
+        TrackPlayer.skipToNext()
     }
 
     prevTrack(){
-        this.refs.carousel.snapToPrev()
+        TrackPlayer.skipToPrevious()
     }
 
     skipTo(index,item){
-        this.refs.carousel.snapToItem(index)
+        TrackPlayer.skip(item.id)
     }
 
     render(){
-        console.log(this.state.noMusic)
         if(this.state.noMusic){
             return(
                 <View style={{width:'100%',height:'100%',backgroundColor:'white',justifyContent:'center',alignItems:'center'}}>
@@ -236,29 +234,21 @@ class PlayScreen extends React.Component{
                 <ViewPager style={{width:'100%',height:'100%',flex:1}} initialPage={0}>
                     <View key="1" style={{alignItems:'center',justifyContent:'center'}}>
                         <View style={style.container}>
-                            <Carousel
-                                ref={'carousel'}
-                                data={this.state.related}
-                                renderItem={({item,index})=>(
-                                    <View>
-                                        <Image source={{uri:item.artwork}} style={{width:246,height:138}}/>
-                                        <Text style={style.title}>{item.title}</Text>
-                                    </View>
-                                )}
-                                sliderWidth={246}
-                                itemWidth={246}
-                                onSnapToItem={(index)=>TrackPlayer.skip(this.state.related[index].id)}
-                                contentContainerCustomStyle={style.img}
-                            />
+
+                        <View style={style.img}>
+                            <Image style={{width:246,height:138}} source={{uri:this.state.artwork}} onPress={()=>{console.log(1)}}/>
+                        </View>
+
+                        <Text style={style.title}>{this.state.title}</Text>
+
+                        <ProgressBar/>
     
-                            <ProgressBar/>
-    
-                            <View style={style.buttonGroup}>
-                                <Button buttonStyle={style.button} icon={this.skipIcon} onPress={()=>this.prevTrack()}></Button>
-                                <Button buttonStyle={style.button} icon={this.playIcon} onPress={this.playPause}></Button>
-                                <Button buttonStyle={style.button} icon={this.stopIcon} onPress={()=>TrackPlayer.stop()}></Button>
-                                <Button buttonStyle={style.button} icon={this.forwardIcon} onPress={()=>this.nextTrack()}></Button>
-                            </View>
+                        <View style={style.buttonGroup}>
+                            <Button buttonStyle={style.button} icon={this.skipIcon} onPress={()=>this.prevTrack()}></Button>
+                            <Button buttonStyle={style.button} icon={this.playIcon} onPress={this.playPause}></Button>
+                            <Button buttonStyle={style.button} icon={this.stopIcon} onPress={()=>TrackPlayer.stop()}></Button>
+                            <Button buttonStyle={style.button} icon={this.forwardIcon} onPress={()=>this.nextTrack()}></Button>
+                        </View>
     
                         </View>
                     </View>

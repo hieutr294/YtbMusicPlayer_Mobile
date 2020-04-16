@@ -12,7 +12,7 @@ class ResultScreen extends React.Component{
         this.state={
             searchdatas:[]
         }
-        this.page = 2
+        this.page = 1
     }
     componentDidMount(){
         axios.get(`https://www.youtube.com/results?search_query=${this.props.route.params.query}`)
@@ -47,6 +47,7 @@ class ResultScreen extends React.Component{
     }
 
     loadMore(){
+        this.page+=1
         axios.get(`https://www.youtube.com/results?page=${this.page}&search_query=${this.props.route.params.query}`)
         .then(res=>{
             const $ = cheerio.load(res.data)
@@ -93,7 +94,6 @@ class ResultScreen extends React.Component{
                             <Item channeltitle={item.author} thumbnail={item.img} title={item.title}/>
                         </TouchableOpacity>
                     )}
-                    keyExtractor={item=>item.id}
                     onEndReached={()=>this.loadMore()}
                     onEndReachedThreshold={0.5}
                 />
