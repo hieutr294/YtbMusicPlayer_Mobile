@@ -1,6 +1,5 @@
 import React from 'react'
-import { SearchBar,Icon,Divider } from 'react-native-elements';
-import {View,Text,FlatList,StyleSheet,TouchableOpacity,ScrollView} from 'react-native'
+import {View,FlatList,StyleSheet,TouchableOpacity} from 'react-native'
 import axios from 'axios'
 import cheerio from 'react-native-cheerio'
 import Item from '../component/item'
@@ -11,12 +10,8 @@ class MainScreen extends React.Component{
     constructor(){
         super()
         this.state={
-            suggetData:[],
-            value:' ',
-            isHiden:false,
             trending:[]
         }
-        this.sendQuery = this.sendQuery.bind(this)
         this.getYtbData = this.getYtbData.bind(this)
     }
 
@@ -56,44 +51,9 @@ class MainScreen extends React.Component{
         this.getYtbData()
     }
 
-    getAutoComplteData(text){
-        axios.get(`https://suggestqueries.google.com/complete/search?ds=yt&client=firefox&hjson=t&q=${text}&alt=json`)
-        .then(res=>{
-            this.setState({suggetData:res.data[1]})
-        })
-        .catch(err=>{console.log(err)})
-        this.setState({value:text})
-        if(text==''){
-            this.setState({value:' '})
-        }
-    }
-
-    sendQuery(){
-        this.props.navigation.navigate('result',{query:this.state.value})
-    }
-
     render(){
         return(
             <View style={{backgroundColor:'white'}}>
-                    <View >
-                        <SearchBar
-                            platform='android'
-                            searchIcon={(<Icon name='search'/>)}
-                            value={this.state.value}
-                            onChangeText={(text)=>this.getAutoComplteData(text)}
-                            onSubmitEditing={this.sendQuery}
-                            defaultValue=" "
-                        />
-                        <FlatList
-                            data={this.state.suggetData}
-                            renderItem={({item})=>(
-                                <TouchableOpacity onPress={()=>{this.setState({value:item})}}>
-                                    <Text style={style.suggets}>{item}</Text>
-                                </TouchableOpacity>
-                            )}
-                            keyExtractor={item=>item.id}
-                        />
-                    </View>
                     <View style={style.trending}>
                         <FlatList
                             data={this.state.trending}
@@ -118,25 +78,9 @@ class MainScreen extends React.Component{
 }
 
 const style = StyleSheet.create({
-    textinput:{
-        fontSize:17,
-        borderColor:'gray',
-        borderWidth:1,
-        marginTop:'5%',
-        marginLeft:'2%',
-        marginRight:'2%',
-        borderRadius:5
-    },
-    suggets:{
-        textAlign:'center',
-        fontSize:18,
-        padding:5,
-        marginLeft:'2%',
-        marginRight:'2%'
-    },
     trending:{
         backgroundColor:'white',
-        height:'87%'
+        height:'100%'
     }
 })
 
