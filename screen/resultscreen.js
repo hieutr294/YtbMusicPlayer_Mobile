@@ -14,8 +14,10 @@ class ResultScreen extends React.Component{
         }
         this.page = 1
     }
-    componentDidMount(){
-        axios.get(`https://www.youtube.com/results?search_query=${this.props.route.params.query}`)
+
+    async getYtbSearchData(){
+        var arrLink2 = []
+        await axios.get(`https://www.youtube.com/results?search_query=${this.props.route.params.query}`)
         .then(res=>{
             const $ = cheerio.load(res.data)
             let imgLink = []
@@ -42,7 +44,14 @@ class ResultScreen extends React.Component{
 			        author:authors[i]
                 })
             })
-            this.setState({searchdatas:this.state.searchdatas.concat(arrLink)})
+            arrLink2=arrLink
+        })
+        return arrLink2
+    }
+
+    componentDidMount(){
+        this.getYtbSearchData().then(result=>{
+            this.setState({searchdatas:this.state.searchdatas.concat(result)})
         })
     }
 

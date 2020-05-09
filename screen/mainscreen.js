@@ -12,11 +12,12 @@ class MainScreen extends React.Component{
         this.state={
             trending:[]
         }
-        this.getYtbData = this.getYtbData.bind(this)
+        this.getYtbTrendingData = this.getYtbTrendingData.bind(this)
     }
 
-    getYtbData(){
-        axios.get(`https://www.youtube.com/feed/trending?bp=4gIuCggvbS8wNHJsZhIiUExGZ3F1TG5MNTlhbW42X05FZFc5TGswZDdXZWVST0Q2VA%3D%3D`)
+    async getYtbTrendingData(){
+        var arrLink2 = []
+        await axios.get(`https://www.youtube.com/feed/trending?bp=4gIuCggvbS8wNHJsZhIiUExGZ3F1TG5MNTlhbW42X05FZFc5TGswZDdXZWVST0Q2VA%3D%3D`)
         .then(res=>{
             const $ = cheerio.load(res.data)
             let imgLink = []
@@ -43,12 +44,16 @@ class MainScreen extends React.Component{
 			        author:authors[i]
                 })
             })
-            this.setState({trending:this.state.trending.concat(arrLink)})
+            
+            arrLink2=arrLink
         })
+        return arrLink2
     }
 
     componentDidMount(){
-        this.getYtbData()
+        this.getYtbTrendingData().then(result=>{
+            this.setState({trending:this.state.trending.concat(result)})
+        })
     }
 
     render(){

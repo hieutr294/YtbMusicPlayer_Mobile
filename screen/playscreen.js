@@ -25,6 +25,57 @@ class PlayScreen extends React.Component{
         this.nameIcon = 'play-arrow'
         this.playPause = this.playPause.bind(this)
         this.playIcon = this.playIcon.bind(this)
+        this.getAllVideo = this.getAllVideo.bind(this)
+    }
+
+    getAllVideo(){
+        ytdl.getInfo(`https://www.youtube.com/watch?v=${this.props.id}`,(err,info)=>{
+            TrackPlayer.add({
+                id:"first",
+                url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
+                artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
+                title:info.title,
+                artist:info.player_response.videoDetails.author
+            })
+            this.setState({
+                related:[{
+                    id:"first",
+                    url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
+                    artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
+                    title:info.title,
+                    artist:info.player_response.videoDetails.author
+                }]
+            })
+            info.related_videos.map((val,index)=>{
+                ytdl.getInfo(val.id,async (err,info)=>{
+                    TrackPlayer.add({
+                        id:`${index}`,
+                        url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
+                        artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
+                        title:info.title,
+                        artist:info.player_response.videoDetails.author
+                    })
+                    this.setState({
+                        related:[...this.state.related,{
+                            id:`${index}`,
+                            url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
+                            artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
+                            title:info.title,
+                            artist:info.player_response.videoDetails.author
+                        }]
+                    })
+                })
+            })
+            
+            TrackPlayer.addEventListener('playback-track-changed',data=>{
+                TrackPlayer.getTrack(data.nextTrack).then(val=>{
+                    this.setState({
+                        title:val.title,
+                        artwork:val.artwork
+                    })
+                })
+            })
+        }) 
     }
 
     componentDidMount(){
@@ -52,53 +103,7 @@ class PlayScreen extends React.Component{
                 noMusic:true
             })
         }else{
-            ytdl.getInfo(`https://www.youtube.com/watch?v=${this.props.id}`,(err,info)=>{
-                TrackPlayer.add({
-                    id:"first",
-                    url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
-                    artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
-                    title:info.title,
-                    artist:info.player_response.videoDetails.author
-                })
-                this.setState({
-                    related:[{
-                        id:"first",
-                        url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
-                        artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
-                        title:info.title,
-                        artist:info.player_response.videoDetails.author
-                    }]
-                })
-                info.related_videos.map((val,index)=>{
-                    ytdl.getInfo(val.id,async (err,info)=>{
-                        TrackPlayer.add({
-                            id:`${index}`,
-                            url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
-                            artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
-                            title:info.title,
-                            artist:info.player_response.videoDetails.author
-                        })
-                        this.setState({
-                            related:[...this.state.related,{
-                                id:`${index}`,
-                                url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
-                                artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
-                                title:info.title,
-                                artist:info.player_response.videoDetails.author
-                            }]
-                        })
-                    })
-                })
-                
-                TrackPlayer.addEventListener('playback-track-changed',data=>{
-                    TrackPlayer.getTrack(data.nextTrack).then(val=>{
-                        this.setState({
-                            title:val.title,
-                            artwork:val.artwork
-                        })
-                    })
-                })
-            })  
+            this.getAllVideo()
         }
     }
 
@@ -112,64 +117,12 @@ class PlayScreen extends React.Component{
             this.setState({
                 related:[]
             })
-            ytdl.getInfo(`https://www.youtube.com/watch?v=${this.props.id}`,(err,info)=>{
-                TrackPlayer.add({
-                    id:"first",
-                    url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
-                    artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
-                    title:info.title,
-                    artist:info.player_response.videoDetails.author
-                })
-
-                this.setState({
-                    related:[{
-                        id:"first",
-                        url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
-                        artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
-                        title:info.title,
-                        artist:info.player_response.videoDetails.author
-                    }]
-                })
-
-                info.related_videos.map((val,index)=>{
-                    ytdl.getInfo(val.id,async (err,info)=>{
-                        TrackPlayer.add({
-                            id:`${index}`,
-                            url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
-                            artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
-                            title:info.title,
-                            artist:info.player_response.videoDetails.author
-                        })
-                        this.setState({
-                            related:[...this.state.related,{
-                                idYtb:info.video_id,
-                                id:`${index}`,
-                                url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
-                                artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
-                                title:info.title,
-                                artist:info.player_response.videoDetails.author
-                            }]
-                        })
-                    })
-                })
-                
-                TrackPlayer.addEventListener('playback-track-changed',data=>{
-                    TrackPlayer.getTrack(data.nextTrack).then(val=>{
-                        this.setState({
-                            title:val.title,
-                            artwork:val.artwork
-                        })
-                    })
-                })
-            })
+            this.getAllVideo()
         }
 
         TrackPlayer.getState().then(val=>{
             if(val==TrackPlayer.STATE_READY){
                 TrackPlayer.play()
-            }
-            if(val==TrackPlayer.STATE_PAUSED){
-                console.log(val)
             }
         })
 
