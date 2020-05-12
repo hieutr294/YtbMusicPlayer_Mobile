@@ -17,7 +17,7 @@ class PlayScreen extends React.Component{
             arr:[],
             title:'',
             artwork:'',
-            related:[],
+            related:[{}],
             currentTrack:'',
             noMusic:false
         }
@@ -28,17 +28,10 @@ class PlayScreen extends React.Component{
         this.getAllVideo = this.getAllVideo.bind(this)
     }
 
-    getAllVideo(){
-        ytdl.getInfo(`https://www.youtube.com/watch?v=${this.props.id}`,(err,info)=>{
-            TrackPlayer.add({
-                id:"first",
-                url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
-                artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
-                title:info.title,
-                artist:info.player_response.videoDetails.author
-            })
+    async getAllVideo(){
+        await ytdl.getInfo(`https://www.youtube.com/watch?v=${this.props.id}`,(err,info)=>{
             this.setState({
-                related:[{
+                related:[...this.state.related,{
                     id:"first",
                     url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
                     artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
@@ -48,13 +41,6 @@ class PlayScreen extends React.Component{
             })
             info.related_videos.map((val,index)=>{
                 ytdl.getInfo(val.id,async (err,info)=>{
-                    TrackPlayer.add({
-                        id:`${index}`,
-                        url:ytdl.filterFormats(info.formats,'audioonly')[0].url,
-                        artwork:info.player_response.videoDetails.thumbnail.thumbnails[2].url,
-                        title:info.title,
-                        artist:info.player_response.videoDetails.author
-                    })
                     this.setState({
                         related:[...this.state.related,{
                             id:`${index}`,
@@ -63,15 +49,6 @@ class PlayScreen extends React.Component{
                             title:info.title,
                             artist:info.player_response.videoDetails.author
                         }]
-                    })
-                })
-            })
-            
-            TrackPlayer.addEventListener('playback-track-changed',data=>{
-                TrackPlayer.getTrack(data.nextTrack).then(val=>{
-                    this.setState({
-                        title:val.title,
-                        artwork:val.artwork
                     })
                 })
             })
@@ -107,25 +84,42 @@ class PlayScreen extends React.Component{
         }
     }
 
-    componentDidUpdate(prevProps){
-        if(prevProps.id!=this.props.id){
+    getSnapshotBeforeUpdate(props){
+        if(props.id!=this.props.id){
             this.setState({
                 noMusic:false
             })
-            TrackPlayer.destroy()
-            TrackPlayer.setupPlayer()
+            TrackPlayer.stop()
             this.setState({
-                related:[]
+                related:[{}]
             })
             this.getAllVideo()
         }
+    }
+
+    componentDidUpdate(prevProps){
+        if(this.state.related.length==19){
+            let arr = this.state.related
+            console.log(arr)
+            arr.shift()
+            TrackPlayer.add(arr)
+        }
+
+        TrackPlayer.addEventListener('playback-track-changed',data=>{
+            TrackPlayer.getTrack(data.nextTrack).then(val=>{
+                this.setState({
+                    title:val.title,
+                    artwork:val.artwork
+                })
+            })
+        })
 
         TrackPlayer.getState().then(val=>{
             if(val==TrackPlayer.STATE_READY){
                 TrackPlayer.play()
             }
+            
         })
-
     }
 
     playPause(){
